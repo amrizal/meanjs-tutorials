@@ -3,6 +3,21 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/mydb');
+
+var UserSchema = new mongoose.Schema ({firstname:'string', lastname:'string'});
+var User = mongoose.model ('User', UserSchema);
+
+var user1 = new User();
+user1.firstname = "Sandra";
+user1.lastname = "Williams";
+
+user1.save(function (err, user1){
+	if (err)
+		res.err (err);
+});
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
