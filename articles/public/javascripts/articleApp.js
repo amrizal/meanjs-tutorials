@@ -1,4 +1,4 @@
-var app = angular.module('articleApp', ['ngRoute']);
+var app = angular.module('articleApp', ['ngRoute', 'ngResource']);
 
 app.config(function($routeProvider){
 	$routeProvider
@@ -11,26 +11,21 @@ app.config(function($routeProvider){
 		})
 });
 
-app.factory('articleService', function($http){
-	var factory = {};
-	factory.getArticles = function(){
-		return $http.get ('/api/articles');
-	}
-	return factory;
+app.factory('articleService', function($resource){
+	return $resource('/api/articles');
 });
 
 app.controller('mainController', function($scope, $http, articleService){
 	$scope.articles = [];
 	$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
 	
-	articleService.getArticles().then(function(response){
-		$scope.articles = response.data;
-	});
+	$scope.articles = articleService.query();
 	
 	$scope.post = function(){
 		$scope.newArticle.timestamp = Date.now();
-		$http.post('/api/articles', $scope.newArticle).then(function(response){
-			$scope.articles.push(response.data);
+		
+		articleService.save($scope.newArticle, function(){
+			$scope.articles.push($scope.newArticle);
 			$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
 		});
 	}
