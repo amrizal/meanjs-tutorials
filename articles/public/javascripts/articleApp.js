@@ -11,15 +11,19 @@ app.config(function($routeProvider){
 		})
 });
 
-app.controller('mainController', function($scope){
+app.controller('mainController', function($scope, $http){
 	$scope.articles = [];
 	$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
 	
+	$http.get('/api/articles').then(function(response){
+		$scope.articles = response.data;
+	});
 	$scope.post = function(){
 		$scope.newArticle.timestamp = Date.now();
-		$scope.articles.push($scope.newArticle);
-		$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
-		};
+		$http.post('/api/articles', $scope.newArticle).then(function(response){
+			$scope.articles.push(response.data);
+			$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
+		});
 	}
-);
+});
 	
