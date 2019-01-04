@@ -1,4 +1,13 @@
-var app = angular.module('articleApp', ['ngRoute', 'ngResource']);
+var app = angular.module('articleApp', ['ngRoute', 'ngResource']).run(function($http, $rootScope){
+	$rootScope.authenticated = false;
+	$rootScope.current_user = "Guest";
+	
+	$rootScope.signout = function(){
+		$http.get('auth/signout');
+		$rootScope.authenticated = false;
+		$rootScope.current_user = "Guest";
+	};
+});
 
 app.config(function($routeProvider){
 	$routeProvider
@@ -39,15 +48,33 @@ app.controller('mainController', function($scope, $http, articleService){
 	}
 });
 
-app.controller('authController', function($scope){
+app.controller('authController', function($scope, $http, $location, $rootScope){
 	$scope.user = {username: '', password: ''};
 	$scope.msg = '';
 	
 	$scope.signin = function(){
-		$scope.msg = 'Sign in request received for user : ' + $scope.user.username;
+		$http.post('/auth/signin', $scope.user).success(function(response){
+			if(response.state == 'success'){
+				$rootScope.authenticated = true;
+				$rootScope.current_user = response.user.username;
+				$location.path('/');
+			}
+			else{
+				$scope.msg = response.message;
+			}
+		});
 	}
-
+	
 	$scope.signup = function(){
-		$scope.msg = 'Sign up request received for user : ' + $scope.user.username;
+		$http.post('/auth/signup', $scope.user).success(function(response){
+			if (response.state == 'success'){
+				$rootScope.authenticated = true;
+				$rootScope.current_user = response.user.username;
+				$location.path('/');
+			}
+			else{
+				$scope.msg = response.message;
+			}
+		});
 	}
 });
