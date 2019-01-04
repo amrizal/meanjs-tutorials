@@ -9,6 +9,14 @@ app.config(function($routeProvider){
 		.when('/about', {
 			templateUrl: 'about.html',
 		})
+		.when('/signin', {
+			templateUrl: 'signin.html',
+			controller: 'authController'
+		})
+		.when('/signup', {
+			templateUrl: 'signup.html',
+			controller: 'authController'
+		})
 });
 
 app.factory('articleService', function($resource){
@@ -30,4 +38,16 @@ app.controller('mainController', function($scope, $http, articleService){
 		});
 	}
 });
+
+app.controller('authController', function($scope){
+	$scope.user = {username: '', password: ''};
+	$scope.msg = '';
 	
+	$scope.signin = function(){
+		$scope.msg = 'Sign in request received for user : ' + $scope.user.username;
+	}
+
+	$scope.signup = function(){
+		$scope.msg = 'Sign up request received for user : ' + $scope.user.username;
+	}
+});
