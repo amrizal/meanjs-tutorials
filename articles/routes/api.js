@@ -4,6 +4,15 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var Article = mongoose.model('Article');
 
+router.use('/articles', function(req, res, next){
+	if (req.method == 'GET')
+		return next();
+	else if (req.isAuthenticated())
+		return next();
+	else
+		res.send({status: 'Authentication Failure'});	
+});
+
 router.get('/articles', function(req, res, next) {
   Article.find (function(err, articles){
 	  if (err){
@@ -34,5 +43,31 @@ router.post('/articles', function(req, res, next) {
   });
 });
 
+router.delete('/articles/:id', function(req, res, next){
+	Article.remove({_id:req.params.id}, function(err, article){
+		if(err){
+			return res.send(err);
+		}
+		res.json({message:'Successfully deleted'});
+	});
+});
+
+router.put('/articles', function(req, res, next){
+	Article.findOne({_id:req.body._id}, function(err, article){
+		if(err){
+			return res.send(err);
+		}
+		article.username = req.body.username;
+		article.title = req.body.title;
+		article.text = req.body.text;
+		article.timestamp = req.body.timestamp;
+		article.save(function(err){
+			if (err){
+				return res.send(err);
+			}
+			res.json({message:'Article updated'});
+		});
+	});
+});
 
 module.exports = router;

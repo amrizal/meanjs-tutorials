@@ -29,22 +29,67 @@ app.config(function($routeProvider){
 });
 
 app.factory('articleService', function($resource){
-	return $resource('/api/articles');
+	return $resource('/api/articles/:articleId', {articleId:'@id'},
+		{update:{method:'PUT'}});
 });
 
-app.controller('mainController', function($scope, $http, articleService){
+app.controller('mainController', function($scope, $http, articleService, $location, $rootScope){
 	$scope.articles = [];
 	$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
+	$scope.editMode = false;
 	
 	$scope.articles = articleService.query();
 	
 	$scope.post = function(){
 		$scope.newArticle.timestamp = Date.now();
+		$scope.newArticle.username = $rootScope.current_user;
 		
-		articleService.save($scope.newArticle, function(){
-			$scope.articles.push($scope.newArticle);
+		articleService.save($scope.newArticle, function(response){
+			if (response.status == 'Authentication Failure')
+				$location.path('/signin');
+			
+			$scope.articles = articleService.query();
 			$scope.newArticle = {username: '', title: '', text: '', timestamp: ''};
 		});
+	}
+	
+	$scope.edit = function(article){
+		$scope.editMode = true;
+		$scope.newArticle = articleService.get({articleId: article._id});
+	};
+	
+	$scope.update = function(article){
+		$scope.newArticle.timestamp = Date.now();
+		
+		articleService.update($scope.newArticle, function(response){
+			if (response.status == 'Authentication Failure')
+				$location.path('/signin');
+			else
+			{
+				$scope.articles = articleService.query();
+				$scope.newArticle = {username:'', title:'', text:'', timestamp:''};
+			}
+			$scope.editMode = false;
+		});
+	};
+	
+	$scope.del = function(article){
+		if(confirm('Are you sure you want to delete this article?'))
+		{
+			articleService.delete({articleId:article._id}, function(response){
+				if (response.status == 'Authentication Failure')
+					$location.path('/signin');
+				else
+				{
+					$scope.articles = articleService.query();
+					$scope.newArticle = {username:'', title:'', text:'', timestamp:''};
+				}
+			});
+		}
+	};	
+
+	$scope.isUserOwner = function(article){
+		return (article.username == $rootScope.current_user);
 	}
 });
 
